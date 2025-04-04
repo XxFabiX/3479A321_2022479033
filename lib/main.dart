@@ -28,9 +28,9 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'PRIMER INTENTO FLUTTER'),
     );
   }
 }
@@ -67,6 +67,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _decrementCounter() {
+
+    setState(() {
+      _counter--;
+    }
+    );
+  }
+
+  void _resetCounter() {
+
+    setState(() {
+      _counter=0;
+    }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -85,6 +101,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
+
+
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -104,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
+            const Text('Has pulsado el boton muchas veces'),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -112,11 +130,35 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      /*floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        tooltip: 'Gooo',
+        child: const Icon(Icons.dangerous),
+      ),*/
+      
+      persistentFooterButtons: newMethod,
+       
     );
+  }
+
+  List<Widget> get newMethod {
+    return [
+
+      IconButton(
+        onPressed: _decrementCounter,
+        icon: const Icon(Icons.remove),
+      ),
+
+      IconButton(
+        onPressed: _resetCounter,
+        icon: const Icon(Icons.refresh),
+      ),
+
+      IconButton(
+        onPressed: _incrementCounter,
+        icon: const Icon(Icons.add),
+      ),
+
+    ];
   }
 }
