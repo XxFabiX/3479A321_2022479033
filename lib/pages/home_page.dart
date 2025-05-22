@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import '../main.dart'; // acceso a MyApp.logger
+import '../provider/app_data.dart'; 
 import 'list_content.dart';
 import 'about_page.dart';
 
@@ -10,35 +12,77 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() {
+    print("crear estado"); 
+    return _MyHomePageState(); 
+  }
 }
 
-
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+
+  _MyHomePageState() {
+    MyApp.logger.d("Constructor llamado, mounted: $mounted");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    MyApp.logger.d("initState() llamado, mounted: $mounted");
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    MyApp.logger.d("didChangeDependencies() llamado, mounted: $mounted");
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    MyApp.logger.d("setState() llamado (antes), mounted: $mounted");
+    super.setState(fn);
+    MyApp.logger.d("setState() llamado (despues), mounted: $mounted");
+  }
+
+  @override
+  void didUpdateWidget(MyHomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    MyApp.logger.d("didUpdateWidget() llamado, mounted: $mounted");
+  }
+
+  @override
+  void deactivate() {
+    MyApp.logger.d("deactivate() llamado, mounted: $mounted");
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
+    MyApp.logger.d("dispose() llamado, mounted: $mounted");
+    super.dispose();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    MyApp.logger.d("reassemble() llamado, mounted: $mounted");
+  }
 
   void _incrementCounter() {
-    setState(() {
-      _counter++;
-      MyApp.logger.d("Contador incrementado: $_counter");
-    });
+    Provider.of<AppData>(context, listen: false).incrementCounter();
+    MyApp.logger.d("Contador incrementado");
   }
 
   void _decrementCounter() {
-    setState(() {
-      _counter--;
-      MyApp.logger.d("Contador decrementado: $_counter");
-    });
+    Provider.of<AppData>(context, listen: false).decrementCounter();
+    MyApp.logger.d("Contador decrementado");
   }
 
   void _resetCounter() {
-    setState(() {
-      _counter = 0;
-      MyApp.logger.d("Contador reiniciado a 0");
-    });
+    Provider.of<AppData>(context, listen: false).resetCounter();
+    MyApp.logger.d("Contador reiniciado");
   }
 
-  
+
   void _navigateToList() {
     Navigator.push(
       context,
@@ -49,7 +93,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    MyApp.logger.d("MyHomePage construido");
+    MyApp.logger.d("build() llamado, mounted: $mounted");
+    
+
+    final appData = Provider.of<AppData>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,6 +117,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
+                      Text(
+                        'Usuario: ${appData.userName}',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
                       const Text(
                         'Flutter es un framework ¡No olvidar!',
                         textAlign: TextAlign.center,
@@ -82,8 +134,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 10),
                       const Text('Contador actual:'),
+
+                      //mostrar contador desde provider
                       Text(
-                        '$_counter',
+                        '${appData.counter}',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 20),
@@ -95,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             icon: const Icon(Icons.remove),
                           ),
                           IconButton(
-                            onPressed: _resetCounter,
+                            onPressed: appData.allowReset ? _resetCounter : null,
                             icon: const Icon(Icons.refresh),
                           ),
                           IconButton(
@@ -109,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            //siguiente
+
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _navigateToList,

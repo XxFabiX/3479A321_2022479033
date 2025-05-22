@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
+import 'provider/app_data.dart'; // Cambiado a "providers" (plural estándar)
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider( 
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppData()), 
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,7 +24,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     logger.i("Logger is working");
+    
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // [Opcional] Elimina el banner de debug
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -38,5 +49,5 @@ class MyApp extends StatelessWidget {
       home: const MyHomePage(title: 'PRIMER INTENTO FLUTTER'),
     );
   }
-  
+
 }
