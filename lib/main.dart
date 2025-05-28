@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
-import 'provider/app_data.dart'; // Cambiado a "providers" (plural estándar)
+import 'provider/app_data.dart'; 
 
 void main() {
   runApp(
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     logger.i("Logger is working");
     
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // [Opcional] Elimina el banner de debug
+      debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
