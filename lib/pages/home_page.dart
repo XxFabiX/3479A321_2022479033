@@ -7,6 +7,7 @@ import '../provider/app_data.dart';
 import 'list_content.dart';
 import 'about_page.dart';
 import 'preferences_page.dart';
+import 'actividad_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -210,6 +211,21 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           ),
+                  ListTile(
+          leading: const Icon(Icons.event_note, color: Colors.deepPurple),
+          title: const Text('Actividades', style: TextStyle(fontWeight: FontWeight.bold)),
+          tileColor: Colors.grey[100],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          onTap: () {
+            Navigator.pop(context); // Cierra el Drawer
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ActividadPage()),
+            );
+          },
+        ),
           ListTile(
             leading: const Icon(Icons.list, color: Colors.deepPurple),
             title: const Text('Lista de Elementos', style: TextStyle(fontWeight: FontWeight.bold)),
