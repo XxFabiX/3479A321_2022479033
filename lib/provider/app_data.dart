@@ -4,6 +4,7 @@ class AppData extends ChangeNotifier {
   int _counter = 0;
   String _userName = "Invitado";
   bool _allowReset = true;
+  
 
   //get's
   int get counter => _counter;

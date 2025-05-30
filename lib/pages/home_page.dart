@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart'; // acceso a MyApp.logger
-import '../provider/app_data.dart'; 
+import '../provider/app_data.dart';
 import 'list_content.dart';
 import 'about_page.dart';
+import 'preferences_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -12,22 +14,27 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() {
-    print("crear estado"); 
-    return _MyHomePageState(); 
-  }
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  _MyHomePageState() {
-    MyApp.logger.d("Constructor llamado, mounted: $mounted");
-  }
-
   @override
   void initState() {
     super.initState();
-    MyApp.logger.d("initState() llamado, mounted: $mounted");
+    _loadPreferences(); // Carga las preferencias al iniciar
+    MyApp.logger.d("HomePage: initState() - Cargando preferencias");
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isResetEnabled = prefs.getBool('isResetEnabled') ?? true;
+      Provider.of<AppData>(context, listen: false).toggleReset(isResetEnabled);
+      MyApp.logger.i("HomePage: Preferencia cargada - isResetEnabled: $isResetEnabled");
+    } catch (e) {
+      MyApp.logger.e("HomePage: Error al cargar preferencias", error: e);
+    }
   }
 
   @override
@@ -43,29 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
     MyApp.logger.d("setState() llamado (despues), mounted: $mounted");
   }
 
-  @override
-  void didUpdateWidget(MyHomePage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    MyApp.logger.d("didUpdateWidget() llamado, mounted: $mounted");
-  }
 
-  @override
-  void deactivate() {
-    MyApp.logger.d("deactivate() llamado, mounted: $mounted");
-    super.deactivate();
-  }
-
-  @override
-  void dispose() {
-    MyApp.logger.d("dispose() llamado, mounted: $mounted");
-    super.dispose();
-  }
-
-  @override
-  void reassemble() {
-    super.reassemble();
-    MyApp.logger.d("reassemble() llamado, mounted: $mounted");
-  }
 
   void _incrementCounter() {
     Provider.of<AppData>(context, listen: false).incrementCounter();
@@ -103,6 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
+      drawer: _buildDrawer(context),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -135,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 10),
                       const Text('Contador actual:'),
 
-                      //mostrar contador desde provider
+
                       Text(
                         '${appData.counter}',
                         style: Theme.of(context).textTheme.headlineMedium,
@@ -183,7 +169,98 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
 
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(20),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.deepPurple.shade300,
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                )
+              ],
+            ),
+            child: const Text(
+              'Menú Principal',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home, color: Colors.deepPurple),
+            title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+            tileColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.list, color: Colors.deepPurple),
+            title: const Text('Lista de Elementos', style: TextStyle(fontWeight: FontWeight.bold)),
+            tileColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ListContent()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info, color: Colors.deepPurple),
+            title: const Text('About', style: TextStyle(fontWeight: FontWeight.bold)),
+            tileColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.deepPurple),
+            title: const Text('Preferencias', style: TextStyle(fontWeight: FontWeight.bold)),
+            tileColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onTap: () {
+              Navigator.pop(context); //cierra darwer
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PreferencesPage()),
+              ).then((_) {
+                _loadPreferences(); //recarga preferencias al volver
+                MyApp.logger.d("HomePage: Preferencias actualizadas al volver");
+              });
+            },
+          ),
+        ],
+      ),
+    );
   }
 
 }

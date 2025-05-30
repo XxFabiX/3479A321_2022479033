@@ -2,19 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Añadido
 import 'pages/home_page.dart';
-import 'provider/app_data.dart'; 
+import 'provider/app_data.dart';
+import 'services/database_helper.dart';
 
-void main() {
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //inicializa base de datos
+  await DatabaseHelper().initializeDatabase();
+
+  final prefs = await SharedPreferences.getInstance();
+  final isResetEnabled = prefs.getBool('isResetEnabled') ?? true;
+
   runApp(
-    MultiProvider( 
+    MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppData()), 
+        ChangeNotifierProvider(
+          create: (_) => AppData()..toggleReset(isResetEnabled),
+        ),
       ],
       child: const MyApp(),
     ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -26,7 +41,7 @@ class MyApp extends StatelessWidget {
     logger.i("Logger is working");
     
     return MaterialApp(
-      debugShowCheckedModeBanner: false, 
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

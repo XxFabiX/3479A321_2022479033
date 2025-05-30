@@ -20,38 +20,23 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final appData = Provider.of<AppData>(context);
-
     return Scaffold(
       appBar: AppBar(title: const Text('About')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-
           children: [
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Nombre de usuario',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person) //icono persona
               ),
-              onChanged: appData.updateUser,  //actualizacion
+              onChanged: Provider.of<AppData>(context, listen: false).updateUser,
             ),
             const SizedBox(height: 20),
-            SwitchListTile(
-              title: const Text('Permitir reinicio de contador'),
-              value: appData.allowReset,
-              onChanged: (value) {
-                Provider.of<AppData>(context, listen: false).toggleReset(value);
-              },
-            ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Volver'),
