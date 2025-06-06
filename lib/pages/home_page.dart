@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart'; // acceso a MyApp.logger
+import 'package:http/http.dart' as http; 
+
+import '../main.dart';
 import '../provider/app_data.dart';
 import 'list_content.dart';
 import 'about_page.dart';
@@ -20,10 +22,29 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+final List<String> imageUrls = [
+  'https://picsum.photos/id/10/250/250',
+  'https://picsum.photos/id/13/250/250',
+  'https://picsum.photos/id/19/250/250',
+  'https://picsum.photos/id/21/250/250',
+  'https://picsum.photos/id/25/250/250',
+  'https://picsum.photos/id/26/250/250',
+  'https://picsum.photos/id/28/250/250',
+  'https://picsum.photos/id/29/250/250',
+  'https://picsum.photos/id/27/250/250',
+  'https://picsum.photos/id/18/250/250',
+  'https://picsum.photos/id/15/250/250',
+];
+
+  String _currentImageUrl = 'https://picsum.photos/id/10/250/250'; 
+  bool _isImageLoading = false;
+  String _imageError = '';
+  int _currentImageIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    _loadPreferences(); // Carga las preferencias al iniciar
+    _loadPreferences();
     MyApp.logger.d("HomePage: initState() - Cargando preferencias");
   }
 
@@ -38,20 +59,60 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    MyApp.logger.d("didChangeDependencies() llamado, mounted: $mounted");
+Future<void> _getNewImage() async {
+  setState(() {
+    _isImageLoading = true;
+    _imageError = '';
+  });
+
+  try {
+    final newIndex = Provider.of<AppData>(context, listen: false).counter % imageUrls.length;
+
+    if (newIndex == _currentImageIndex) {
+      _currentImageIndex = (newIndex + 1) % imageUrls.length;
+    } else {
+      _currentImageIndex = newIndex;
+    }
+
+    setState(() => _currentImageUrl = imageUrls[_currentImageIndex]);
+  } catch (e) {
+    setState(() => _imageError = 'Error: ${e.toString()}');
+  } finally {
+    setState(() => _isImageLoading = false);
   }
+}
 
-  @override
-  void setState(VoidCallback fn) {
-    MyApp.logger.d("setState() llamado (antes), mounted: $mounted");
-    super.setState(fn);
-    MyApp.logger.d("setState() llamado (despues), mounted: $mounted");
+
+  //wideget mostrar imagenes
+  Widget _buildNetworkImage() {
+    if (_imageError.isNotEmpty) {
+      return Column(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 50),
+          Text(_imageError, style: const TextStyle(color: Colors.red)),
+        ],
+      );
+    }
+
+    return Image.network(
+      _currentImageUrl,
+      width: 250,
+      height: 250,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Center(child: CircularProgressIndicator());
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return const Column(
+          children: [
+            Icon(Icons.broken_image, color: Colors.red, size: 50),
+            Text('Error al cargar imagen', style: TextStyle(color: Colors.red)),
+          ],
+        );
+      },
+    );
   }
-
-
 
   void _incrementCounter() {
     Provider.of<AppData>(context, listen: false).incrementCounter();
@@ -128,6 +189,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 20),
+                      //wideget de imagen desde internet
+                      _buildNetworkImage(),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -145,6 +209,13 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
+                      //buton cambiar iamgen
+                      ElevatedButton(
+                        onPressed: _isImageLoading ? null : _getNewImage,
+                        child: _isImageLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Cambiar Imagen'),
+                      ),
                     ],
                   ),
                 ),
@@ -155,7 +226,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: _navigateToList,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -211,21 +282,21 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           ),
-                  ListTile(
-          leading: const Icon(Icons.event_note, color: Colors.deepPurple),
-          title: const Text('Actividades', style: TextStyle(fontWeight: FontWeight.bold)),
-          tileColor: Colors.grey[100],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+          ListTile(
+            leading: const Icon(Icons.event_note, color: Colors.deepPurple),
+            title: const Text('Actividades', style: TextStyle(fontWeight: FontWeight.bold)),
+            tileColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ActividadPage()),
+              );
+            },
           ),
-          onTap: () {
-            Navigator.pop(context); // Cierra el Drawer
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ActividadPage()),
-            );
-          },
-        ),
           ListTile(
             leading: const Icon(Icons.list, color: Colors.deepPurple),
             title: const Text('Lista de Elementos', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -264,12 +335,12 @@ class _MyHomePageState extends State<MyHomePage> {
               borderRadius: BorderRadius.circular(10),
             ),
             onTap: () {
-              Navigator.pop(context); //cierra darwer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const PreferencesPage()),
               ).then((_) {
-                _loadPreferences(); //recarga preferencias al volver
+                _loadPreferences();
                 MyApp.logger.d("HomePage: Preferencias actualizadas al volver");
               });
             },
