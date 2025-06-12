@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http; 
+import 'package:camera/camera.dart';
 
 import '../main.dart';
 import '../provider/app_data.dart';
@@ -10,15 +11,23 @@ import 'list_content.dart';
 import 'about_page.dart';
 import 'preferences_page.dart';
 import 'actividad_page.dart';
+import 'picture_screen.dart';
+import 'dart:io';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  class MyHomePage extends StatefulWidget {
+    
+    final String title;
+    final CameraDescription camera; //parametro camara
+    
+    const MyHomePage({
+      super.key, 
+      required this.title,
+      required this.camera, //constructor
+    });
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+    @override
+    State<MyHomePage> createState() => _MyHomePageState();
+  }
 
 class _MyHomePageState extends State<MyHomePage> {
 
@@ -40,6 +49,7 @@ final List<String> imageUrls = [
   bool _isImageLoading = false;
   String _imageError = '';
   int _currentImageIndex = 0;
+  String? _cameraImagePath;
 
   @override
   void initState() {
@@ -81,6 +91,18 @@ Future<void> _getNewImage() async {
     setState(() => _isImageLoading = false);
   }
 }
+
+  Widget _buildImage() {
+    if (_cameraImagePath != null) {
+      return Image.file(
+        File(_cameraImagePath!),
+        width: 250,
+        height: 250,
+        fit: BoxFit.cover,
+      );
+    }
+    return _buildNetworkImage(); //metodo existente para las imagenes de internet
+  }
 
 
   //wideget mostrar imagenes
@@ -138,6 +160,22 @@ Future<void> _getNewImage() async {
     MyApp.logger.i("Navegando a ListContent");
   }
 
+//metodo para anvegar por camara
+void _navigateToCamera() async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PictureScreen(camera: widget.camera),
+    ),
+  );
+  
+  if (result != null && mounted) {
+    setState(() {
+      _cameraImagePath = result as String;
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     MyApp.logger.d("build() llamado, mounted: $mounted");
@@ -151,95 +189,99 @@ Future<void> _getNewImage() async {
         title: Text(widget.title),
       ),
       drawer: _buildDrawer(context),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 300,
-              child: Card(
-                margin: const EdgeInsets.all(16),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'Usuario: ${appData.userName}',
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Flutter es un framework ¡No olvidar!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      SvgPicture.asset(
-                        'assets/icon/escudo.svg',
-                        height: 50,
-                        width: 50,
-                      ),
-                      const SizedBox(height: 10),
-                      const Text('Contador actual:'),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 300,
+                child: Card(
+                  margin: const EdgeInsets.all(16),
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          'Usuario: ${appData.userName}',
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Flutter es un framework ¡No olvidar!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SvgPicture.asset(
+                          'assets/icon/escudo.svg',
+                          height: 50,
+                          width: 50,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Contador actual:'),
 
 
-                      Text(
-                        '${appData.counter}',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 20),
-                      //wideget de imagen desde internet
-                      _buildNetworkImage(),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          IconButton(
-                            onPressed: _decrementCounter,
-                            icon: const Icon(Icons.remove),
-                          ),
-                          IconButton(
-                            onPressed: appData.allowReset ? _resetCounter : null,
-                            icon: const Icon(Icons.refresh),
-                          ),
-                          IconButton(
-                            onPressed: _incrementCounter,
-                            icon: const Icon(Icons.add),
-                          ),
-                        ],
-                      ),
-                      //buton cambiar iamgen
-                      ElevatedButton(
-                        onPressed: _isImageLoading ? null : _getNewImage,
-                        child: _isImageLoading
-                            ? const CircularProgressIndicator()
-                            : const Text('Cambiar Imagen'),
-                      ),
-                    ],
+                        Text(
+                          '${appData.counter}',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 20),
+                        //wideget de imagen desde internet
+                        //_buildNetworkImage(),
+                        _buildImage(),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              onPressed: _decrementCounter,
+                              icon: const Icon(Icons.remove),
+                            ),
+                            IconButton(
+                              onPressed: appData.allowReset ? _resetCounter : null,
+                              icon: const Icon(Icons.refresh),
+                            ),
+                            IconButton(
+                              onPressed: _incrementCounter,
+                              icon: const Icon(Icons.add),
+                            ),
+                          ],
+                        ),
+                        //buton cambiar iamgen
+                        ElevatedButton(
+                          onPressed: _isImageLoading ? null : _getNewImage,
+                          child: _isImageLoading
+                              ? const CircularProgressIndicator()
+                              : const Text('Cambiar Imagen'),
+                        ),
+                        ElevatedButton(onPressed: _navigateToCamera, child: const Text("tomar foto"))
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _navigateToList,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _navigateToList,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Ir a Lista de Contenido'),
+                    SizedBox(width: 10),
+                    Icon(Icons.arrow_forward),
+                  ],
+                ),
               ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Ir a Lista de Contenido'),
-                  SizedBox(width: 10),
-                  Icon(Icons.arrow_forward),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 
@@ -278,7 +320,7 @@ Future<void> _getNewImage() async {
               Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home')),
+                MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home', camera:widget.camera,)),
               );
             },
           ),
