@@ -13,6 +13,8 @@ import 'preferences_page.dart';
 import 'actividad_page.dart';
 import 'picture_screen.dart';
 import 'dart:io';
+import 'gallery_page.dart';
+
 
   class MyHomePage extends StatefulWidget {
     
@@ -50,6 +52,7 @@ final List<String> imageUrls = [
   String _imageError = '';
   int _currentImageIndex = 0;
   String? _cameraImagePath;
+  List<String> _cameraImages = []; //lista imagenes
 
   @override
   void initState() {
@@ -96,7 +99,7 @@ Future<void> _getNewImage() async {
     if (_cameraImagePath != null) {
       return Image.file(
         File(_cameraImagePath!),
-        width: 250,
+        width: double.infinity,
         height: 250,
         fit: BoxFit.cover,
       );
@@ -118,7 +121,7 @@ Future<void> _getNewImage() async {
 
     return Image.network(
       _currentImageUrl,
-      width: 250,
+      width: double.infinity,
       height: 250,
       fit: BoxFit.cover,
       loadingBuilder: (context, child, loadingProgress) {
@@ -160,6 +163,13 @@ Future<void> _getNewImage() async {
     MyApp.logger.i("Navegando a ListContent");
   }
 
+  void _restoreInternetImages() {
+  setState(() {
+    _cameraImagePath = null;
+  });
+  }
+
+
 //metodo para anvegar por camara
 void _navigateToCamera() async {
   final result = await Navigator.push(
@@ -168,13 +178,15 @@ void _navigateToCamera() async {
       builder: (context) => PictureScreen(camera: widget.camera),
     ),
   );
-  
+
   if (result != null && mounted) {
     setState(() {
       _cameraImagePath = result as String;
+      _cameraImages.add(_cameraImagePath!); // guardar en lista
     });
   }
 }
+
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +243,13 @@ void _navigateToCamera() async {
                         //wideget de imagen desde internet
                         //_buildNetworkImage(),
                         _buildImage(),
+                        if (_cameraImagePath != null)
+                        ElevatedButton.icon(
+                          onPressed: _restoreInternetImages,
+                          icon: const Icon(Icons.cloud),
+                          label: const Text("Imagenes internet"),
+                        ),
+
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -278,6 +297,17 @@ void _navigateToCamera() async {
                   ],
                 ),
               ),
+              ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GalleryPage(imagePaths: _cameraImages),
+                  ),
+                );
+              },
+              child: const Text("Ver Galería"),
+            ),
             ],
           ),
         ),

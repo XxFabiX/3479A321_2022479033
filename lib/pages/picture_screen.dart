@@ -46,19 +46,23 @@ class _PictureScreenState extends State<PictureScreen> {
   Future<void> _takePicture() async {
     try {
       await _initializeControllerFuture;
-      
+
       final image = await _controller.takePicture();
-      
+
       if (!mounted) return;
 
-      await Navigator.of(context).push(
+      final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPictureScreen(
             imagePath: image.path,
           ),
         ),
       );
-      
+
+      if (result != null && mounted) {
+        Navigator.of(context).pop(result);
+      }
+
     } catch (e) {
       print("Error foto: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +70,7 @@ class _PictureScreenState extends State<PictureScreen> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
